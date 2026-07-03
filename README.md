@@ -117,7 +117,7 @@ If you prefer manual configuration, use these settings in Render dashboard:
 
 **Build Command:**
 ```
-pip install -r requirements.txt
+pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
 ```
 
 **Start Command:**
