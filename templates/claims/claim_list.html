@@ -1,0 +1,197 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}My Claims - Insurance Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-exclamation-triangle me-2"></i>My Claims
+            </h2>
+            <a href="{% url 'claims:submit_claim' %}" class="btn btn-warning">
+                <i class="bi bi-plus-circle me-2"></i>Submit New Claim
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if claims %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Reference No.</th>
+                                <th>Policy</th>
+                                <th>Description</th>
+                                <th>Estimated Value</th>
+                                <th>Status</th>
+                                <th>Submitted Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims %}
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">{{ claim.reference_no }}</strong>
+                                </td>
+                                <td>
+                                    <strong>{{ claim.application.policy.name }}</strong>
+                                    <br><small class="text-muted">{{ claim.application.policy.get_type_display }}</small>
+                                </td>
+                                <td>
+                                    <span title="{{ claim.description }}">
+                                        {{ claim.description|truncatewords:8 }}
+                                    </span>
+                                </td>
+                                <td class="text-success fw-bold">${{ claim.estimated_value|floatformat:2 }}</td>
+                                <td>
+                                    {% if claim.status == 'Pending' %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock me-1"></i>{{ claim.status }}
+                                        </span>
+                                    {% elif claim.status == 'Under Review' %}
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-search me-1"></i>{{ claim.status }}
+                                        </span>
+                                    {% elif claim.status == 'Approved' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>{{ claim.status }}
+                                        </span>
+                                    {% elif claim.status == 'Rejected' %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>{{ claim.status }}
+                                        </span>
+                                    {% elif claim.status == 'Settled' %}
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-check2-square me-1"></i>{{ claim.status }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ claim.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'claims:claim_detail' claim.id %}" class="btn btn-outline-primary" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Summary -->
+<div class="row mt-4">
+    <div class="col-md-2 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{{ claims.count }}</h4>
+                <p class="mb-0">Total Claims</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4>{% for claim in claims %}{% if claim.status == 'Pending' %}1{% endif %}{% endfor %}</h4>
+                <p class="mb-0">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{% for claim in claims %}{% if claim.status == 'Under Review' %}1{% endif %}{% endfor %}</h4>
+                <p class="mb-0">Under Review</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>{% for claim in claims %}{% if claim.status == 'Approved' %}1{% endif %}{% endfor %}</h4>
+                <p class="mb-0">Approved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h4>{% for claim in claims %}{% if claim.status == 'Rejected' %}1{% endif %}{% endfor %}</h4>
+                <p class="mb-0">Rejected</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>{% for claim in claims %}{% if claim.status == 'Settled' %}1{% endif %}{% endfor %}</h4>
+                <p class="mb-0">Settled</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>
+            You haven't submitted any claims yet.
+            <br><br>
+            {% if approved_applications %}
+                <a href="{% url 'claims:submit_claim' %}" class="btn btn-warning">
+                    <i class="bi bi-plus-circle me-2"></i>Submit Your First Claim
+                </a>
+            {% else %}
+                <span class="text-muted">You need an approved policy to submit claims.</span>
+                <br><br>
+                <a href="{% url 'policies:browse_plans' %}" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>Browse Available Plans
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Claim Process Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="bi bi-info-circle me-2"></i>Claim Status Information
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-warning">Pending</h6>
+                        <p class="small text-muted">Claim has been submitted and is awaiting initial review.</p>
+                        
+                        <h6 class="text-info">Under Review</h6>
+                        <p class="small text-muted">Claim is being actively reviewed by our claims team.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success">Approved</h6>
+                        <p class="small text-muted">Claim has been approved and payment processing will begin.</p>
+                        
+                        <h6 class="text-primary">Settled</h6>
+                        <p class="small text-muted">Claim has been fully processed and payment has been made.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

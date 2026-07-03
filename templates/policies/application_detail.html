@@ -1,0 +1,295 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Application Details - Insurance Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 2rem 0;
+        margin: -2rem -2rem 2rem -2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    
+    .detail-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .detail-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    }
+    
+    .status-badge {
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #212529;
+    }
+    
+    .status-approved {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: white;
+    }
+    
+    .status-rejected {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .policy-type-badge {
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .policy-type-life {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .policy-type-motor {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: white;
+    }
+    
+    .policy-type-health {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+        color: white;
+    }
+    
+    .action-btn {
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    
+    .action-btn.claim {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #212529;
+    }
+    
+    .action-btn.edit {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+        color: white;
+    }
+    
+    .timeline-item {
+        border-left: 3px solid #dc3545;
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -7px;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #dc3545;
+        border: 2px solid white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="bi bi-file-text me-3"></i>Application Details
+                </h1>
+                <p class="lead mb-0 opacity-90">View and manage your insurance policy application</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex gap-2 justify-content-md-end">
+                    <a href="{% url 'policies:my_applications' %}" class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Applications
+                    </a>
+                    {% if application.status == 'Approved' %}
+                    <a href="{% url 'claims:submit_claim' %}" class="btn btn-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>File Claim
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Application Overview -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="detail-card">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text me-2"></i>Application Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Application ID</label>
+                            <p class="form-control-plaintext">#APP-{{ application.id|stringformat:"04d" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Application Status</label>
+                            <div>
+                                {% if application.status == 'Pending' %}
+                                    <span class="status-badge status-pending">
+                                        <i class="bi bi-clock"></i>{{ application.status }}
+                                    </span>
+                                {% elif application.status == 'Approved' %}
+                                    <span class="status-badge status-approved">
+                                        <i class="bi bi-check-circle"></i>{{ application.status }}
+                                    </span>
+                                {% elif application.status == 'Rejected' %}
+                                    <span class="status-badge status-rejected">
+                                        <i class="bi bi-x-circle"></i>{{ application.status }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Applied Date</label>
+                            <p class="form-control-plaintext">{{ application.applied_date|date:"F d, Y g:i A" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Application Type</label>
+                            <span class="policy-type-badge policy-type-{{ application.policy.type|lower }}">
+                                {{ application.policy.get_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="detail-card">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-speedometer2 me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'policies:my_applications' %}" class="action-btn edit w-100">
+                            <i class="bi bi-pencil"></i>Edit Application
+                        </a>
+                        {% if application.status == 'Approved' %}
+                        <a href="{% url 'claims:submit_claim' %}" class="action-btn claim w-100">
+                            <i class="bi bi-exclamation-triangle"></i>File Claim
+                        </a>
+                        {% endif %}
+                        <a href="#" onclick="window.print()" class="action-btn w-100" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: white;">
+                            <i class="bi bi-printer"></i>Print Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policy Details -->
+    <div class="detail-card">
+        <div class="card-header bg-light border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-shield-check me-2"></i>Policy Details
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Policy Name</label>
+                    <p class="form-control-plaintext">{{ application.policy.name }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Policy Type</label>
+                    <p class="form-control-plaintext">{{ application.policy.get_type_display }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Coverage Amount</label>
+                    <p class="form-control-plaintext">${{ application.policy.coverage_amount|floatformat:2 }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Premium Amount</label>
+                    <p class="form-control-plaintext">${{ application.policy.premium_amount|floatformat:2 }}/month</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Duration</label>
+                    <p class="form-control-plaintext">{{ application.policy.duration_months }} months</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Policy Description</label>
+                    <p class="form-control-plaintext">{{ application.policy.description|default:"No description available" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Timeline -->
+    {% if application.status_updates %}
+    <div class="detail-card">
+        <div class="card-header bg-light border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history me-2"></i>Application Timeline
+            </h5>
+        </div>
+        <div class="card-body">
+            {% for update in application.status_updates %}
+            <div class="timeline-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>{{ update.status }}</strong>
+                        <br><small class="text-muted">{{ update.comment|default:"Status updated" }}</small>
+                    </div>
+                    <small class="text-muted">{{ update.created_at|date:"M d, Y g:i A" }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

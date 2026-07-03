@@ -1,0 +1,274 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Browse Plans - Insurance Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 3rem 0;
+        margin: -2rem -2rem 2rem -2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    
+    .policy-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .policy-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(220, 53, 69, 0.2);
+    }
+    
+    .policy-header {
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+    }
+    
+    .policy-header.life {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+    
+    .policy-header.motor {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    }
+    
+    .policy-header.health {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+    }
+    
+    .policy-coverage {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .policy-premium {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .policy-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .policy-feature {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        color: #6c757d;
+    }
+    
+    .policy-feature i {
+        width: 20px;
+        margin-right: 0.75rem;
+        color: #dc3545;
+    }
+    
+    .policy-footer {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        margin-top: auto;
+    }
+    
+    .btn-apply {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-apply::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.2);
+        transition: left 0.3s ease;
+    }
+    
+    .btn-apply:hover::before {
+        left: 100%;
+    }
+    
+    .btn-apply:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-applied {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        cursor: not-allowed;
+    }
+    
+    .info-card {
+        border: none;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-3">
+                    <i class="bi bi-shield-check me-3"></i>Browse Insurance Plans
+                </h1>
+                <p class="lead mb-0 opacity-90">Find perfect insurance coverage for your needs</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="badge bg-white text-danger fs-6 px-4 py-2">
+                    <i class="bi bi-shield me-2"></i>{{ policies.count }} Available Plans
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        {% for policy in policies %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="policy-card">
+                <div class="policy-header {{ policy.type|lower }}">
+                    <h4 class="mb-3">
+                        <i class="bi bi-shield me-2"></i>{{ policy.name }}
+                    </h4>
+                    <div class="policy-coverage">${{ policy.coverage_amount|floatformat:0 }}</div>
+                    <div class="text-white-75">Coverage Amount</div>
+                </div>
+                
+                <div class="policy-body">
+                    <div class="policy-premium text-danger">
+                        ${{ policy.premium_amount|floatformat:2 }}/month
+                    </div>
+                    <div class="text-muted mb-3">Monthly Premium</div>
+                    
+                    <div class="policy-features mb-4">
+                        <div class="policy-feature">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>{{ policy.duration_months }} months duration</span>
+                        </div>
+                        <div class="policy-feature">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>{{ policy.get_type_display }} insurance</span>
+                        </div>
+                        {% if policy.description %}
+                        <div class="policy-feature">
+                            <i class="bi bi-info-circle"></i>
+                            <span>{{ policy.description|truncatewords:15 }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="policy-footer">
+                    {% if policy.id in applied_policy_ids %}
+                        <button class="btn btn-applied w-100" disabled>
+                            <i class="bi bi-check-circle me-2"></i>Already Applied
+                        </button>
+                    {% else %}
+                        <a href="{% url 'policies:apply_policy' policy.id %}" class="btn btn-apply w-100 text-white">
+                            <i class="bi bi-plus-circle me-2"></i>Apply Now
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted fs-1"></i>
+                <h4 class="text-muted mt-3">No Insurance Plans Available</h4>
+                <p class="text-muted">Please check back later for new insurance plans.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if policies %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="info-card p-4">
+                <h6 class="mb-3">
+                    <i class="bi bi-info-circle me-2 text-danger"></i>How to Apply
+                </h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="badge bg-danger rounded-circle p-2 me-3">
+                                <i class="bi bi-1"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Browse Plans</h6>
+                                <p class="small text-muted mb-0">Review available insurance plans and coverage options</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="badge bg-danger rounded-circle p-2 me-3">
+                                <i class="bi bi-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Apply Online</h6>
+                                <p class="small text-muted mb-0">Fill out the application form with your details</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="badge bg-danger rounded-circle p-2 me-3">
+                                <i class="bi bi-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Track Status</h6>
+                                <p class="small text-muted mb-0">Monitor your application status in your dashboard</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

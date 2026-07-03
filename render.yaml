@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: insurance-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn insurance.wsgi:application
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: insurance-db
+          property: connectionString
+databases:
+  - name: insurance-db
+    databaseName: insurance
+    user: insurance_user

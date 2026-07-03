@@ -1,0 +1,204 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Dashboard - Insurance Management System{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-speedometer2 me-2"></i>Welcome, {{ user.first_name|default:user.username }}!
+    </h2>
+    <span class="badge bg-primary">Client Dashboard</span>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.total_applications }}</h4>
+                        <p class="card-text">Total Applications</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-file-text fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.approved_applications }}</h4>
+                        <p class="card-text">Approved Policies</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.pending_premiums }}</h4>
+                        <p class="card-text">Pending Premiums</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-clock fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.total_claims }}</h4>
+                        <p class="card-text">Total Claims</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <!-- Recent Applications -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-text me-2"></i>Recent Applications
+                </h5>
+                <a href="{% url 'policies:browse_plans' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                    {% for app in applications %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong>{{ app.policy.name }}</strong><br>
+                            <small class="text-muted">{{ app.applied_date|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-{{ app.status|lower }} rounded-pill">
+                            {{ app.status }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No applications yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Premiums -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-credit-card me-2"></i>Recent Premiums
+                </h5>
+                <a href="{% url 'premium:premium_history' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if premiums %}
+                    {% for premium in premiums %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong>${{ premium.amount_paid }}</strong><br>
+                            <small class="text-muted">Due: {{ premium.due_date|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-{{ premium.status|lower }} rounded-pill">
+                            {{ premium.status }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No premiums yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Claims -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Recent Claims
+                </h5>
+                <a href="{% url 'claims:claim_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if claims %}
+                    {% for claim in claims %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong>{{ claim.reference_no }}</strong><br>
+                            <small class="text-muted">${{ claim.estimated_value }}</small>
+                        </div>
+                        <span class="badge bg-{{ claim.status|lower|slice:":8" }} rounded-pill">
+                            {{ claim.status }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No claims yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'policies:browse_plans' %}" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Apply for Policy
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'premium:premium_history' %}" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-credit-card me-2"></i>Pay Premium
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'claims:claim_list' %}" class="btn btn-warning btn-lg w-100">
+                            <i class="bi bi-exclamation-triangle me-2"></i>File Claim
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-info btn-lg w-100">
+                            <i class="bi bi-person me-2"></i>View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

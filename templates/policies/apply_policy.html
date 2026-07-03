@@ -1,0 +1,287 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Apply for {{ policy.name }} - Insurance Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 2rem 0;
+        margin: -2rem -2rem 2rem -2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    
+    .policy-summary {
+        border: none;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #dc3545;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .policy-detail {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .policy-detail i {
+        width: 20px;
+        margin-right: 0.75rem;
+        color: #dc3545;
+    }
+    
+    .form-section {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        background: white;
+    }
+    
+    .form-section h5 {
+        color: #dc3545;
+        border-bottom: 2px solid #dc3545;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .info-item {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.75rem;
+        border-left: 3px solid #dc3545;
+    }
+    
+    .info-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .warning-alert {
+        border: none;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, #fff8f8 0%, #ffe8e8 100%);
+        border-left: 4px solid #ffc107;
+        padding: 1.5rem;
+    }
+    
+    .btn-apply {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-apply::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.2);
+        transition: left 0.3s ease;
+    }
+    
+    .btn-apply:hover::before {
+        left: 100%;
+    }
+    
+    .btn-apply:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="bi bi-file-text me-3"></i>Apply for {{ policy.name }}
+                </h1>
+                <p class="lead mb-0 opacity-90">Complete your application for insurance coverage</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="badge bg-white text-danger fs-6 px-4 py-2">
+                    <i class="bi bi-shield me-2"></i>{{ policy.get_type_display }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Policy Summary -->
+            <div class="policy-summary">
+                <h6 class="mb-3">
+                    <i class="bi bi-info-circle me-2 text-danger"></i>Policy Overview
+                </h6>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Coverage Amount</div>
+                        <div class="info-value">${{ policy.coverage_amount|floatformat:2 }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Monthly Premium</div>
+                        <div class="info-value">${{ policy.premium_amount|floatformat:2 }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Duration</div>
+                        <div class="info-value">{{ policy.duration_months }} months</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Policy Type</div>
+                        <div class="info-value">{{ policy.get_type_display }}</div>
+                    </div>
+                </div>
+                {% if policy.description %}
+                <div class="mt-3">
+                    <div class="info-label">Description</div>
+                    <div class="info-value">{{ policy.description }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Applicant Information -->
+                <div class="form-section">
+                    <h5>
+                        <i class="bi bi-person me-2"></i>Applicant Information
+                    </h5>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Full Name</div>
+                            <div class="info-value">{{ user.get_full_name|default:user.username }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email Address</div>
+                            <div class="info-value">{{ user.email }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Phone Number</div>
+                            <div class="info-value">{{ user.profile.phone|default:"Not provided" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Date of Birth</div>
+                            <div class="info-value">{{ user.profile.date_of_birth|default:"Not provided"|date:"M d, Y" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Details -->
+                <div class="form-section">
+                    <h5>
+                        <i class="bi bi-pencil-square me-2"></i>Application Details
+                    </h5>
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label fw-semibold">
+                            Additional Notes (Optional)
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.notes.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Add any additional information or special requirements for your application.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Important Information -->
+                <div class="warning-alert">
+                    <h6 class="alert-heading mb-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Important Information
+                    </h6>
+                    <p class="mb-3">
+                        By submitting this application, you confirm that:
+                    </p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi bi-check-circle text-warning me-2 mt-1"></i>
+                                <small>All information provided is accurate and complete</small>
+                            </div>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi bi-check-circle text-warning me-2 mt-1"></i>
+                                <small>You understand the terms and conditions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi bi-check-circle text-warning me-2 mt-1"></i>
+                                <small>You agree to pay the monthly premium</small>
+                            </div>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi bi-check-circle text-warning me-2 mt-1"></i>
+                                <small>Application is subject to approval</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'policies:browse_plans' %}" class="btn btn-outline-danger btn-lg">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Plans
+                    </a>
+                    <button type="submit" class="btn btn-apply btn-lg text-white">
+                        <i class="bi bi-send me-2"></i>Submit Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

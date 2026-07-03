@@ -1,0 +1,380 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Application Management - Insurance Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 2rem 0;
+        margin: -2rem -2rem 2rem -2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    
+    .action-btn {
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    
+    .action-btn.approve {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: white;
+    }
+    
+    .action-btn.reject {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .action-btn.view {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+        color: white;
+    }
+    
+    .status-badge {
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #212529;
+    }
+    
+    .status-approved {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: white;
+    }
+    
+    .status-rejected {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .admin-table {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        overflow: hidden;
+    }
+    
+    .admin-table thead {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .admin-table tbody tr:hover {
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="bi bi-shield-check me-3"></i>Application Management
+                </h1>
+                <p class="lead mb-0 opacity-90">Review and manage insurance policy applications</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex gap-2 justify-content-md-end">
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-light">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ pending_applications.count }}</h4>
+                            <p class="card-text">Pending Applications</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clock fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ approved_applications.count }}</h4>
+                            <p class="card-text">Approved Applications</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ rejected_applications.count }}</h4>
+                            <p class="card-text">Rejected Applications</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-x-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-pills" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="pill" href="#pending">
+                        <i class="bi bi-clock me-2"></i>Pending ({{ pending_applications.count }})
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="pill" href="#approved">
+                        <i class="bi bi-check-circle me-2"></i>Approved ({{ approved_applications.count }})
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="pill" href="#rejected">
+                        <i class="bi bi-x-circle me-2"></i>Rejected ({{ rejected_applications.count }})
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Pending Applications -->
+        <div class="tab-pane fade show active" id="pending">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock me-2"></i>Pending Applications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_applications %}
+                    <div class="table-responsive">
+                        <table class="table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Application ID</th>
+                                    <th>Applicant</th>
+                                    <th>Policy</th>
+                                    <th>Type</th>
+                                    <th>Applied Date</th>
+                                    <th>Premium</th>
+                                    <th>Coverage</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in pending_applications %}
+                                <tr>
+                                    <td><strong>#APP-{{ app.id|stringformat:"04d" }}</strong></td>
+                                    <td>{{ app.client.first_name|default:app.client.username }} {{ app.profile.surname|default:"" }}</td>
+                                    <td>{{ app.policy.name }}</td>
+                                    <td>{{ app.policy.get_type_display }}</td>
+                                    <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                                    <td>${{ app.policy.premium_amount|floatformat:2 }}</td>
+                                    <td>${{ app.policy.coverage_amount|floatformat:2 }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'policies:application_detail' app.pk %}" class="action-btn view">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <form method="post" action="{% url 'accounts:approve_application' app.pk %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="action-btn approve" onclick="return confirm('Are you sure you want to approve this application? Premiums will be automatically generated.')">
+                                                    <i class="bi bi-check-circle"></i> Approve
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'accounts:reject_application' app.pk %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="action-btn reject" onclick="return confirm('Are you sure you want to reject this application?')">
+                                                    <i class="bi bi-x-circle"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-clock fs-1 text-muted mb-3"></i>
+                        <h5 class="text-muted">No pending applications</h5>
+                        <p class="text-muted">All applications have been processed.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Approved Applications -->
+        <div class="tab-pane fade" id="approved">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-check-circle me-2"></i>Approved Applications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if approved_applications %}
+                    <div class="table-responsive">
+                        <table class="table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Application ID</th>
+                                    <th>Applicant</th>
+                                    <th>Policy</th>
+                                    <th>Type</th>
+                                    <th>Applied Date</th>
+                                    <th>Approved Date</th>
+                                    <th>Premium</th>
+                                    <th>Coverage</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in approved_applications %}
+                                <tr>
+                                    <td><strong>#APP-{{ app.id|stringformat:"04d" }}</strong></td>
+                                    <td>{{ app.client.first_name|default:app.client.username }} {{ app.profile.surname|default:"" }}</td>
+                                    <td>{{ app.policy.name }}</td>
+                                    <td>{{ app.policy.get_type_display }}</td>
+                                    <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                                    <td>{{ app.approved_date|date:"M d, Y"|default:"-" }}</td>
+                                    <td>${{ app.policy.premium_amount|floatformat:2 }}</td>
+                                    <td>${{ app.policy.coverage_amount|floatformat:2 }}</td>
+                                    <td>
+                                        <a href="{% url 'policies:application_detail' app.pk %}" class="action-btn view">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-check-circle fs-1 text-muted mb-3"></i>
+                        <h5 class="text-muted">No approved applications</h5>
+                        <p class="text-muted">No applications have been approved yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Rejected Applications -->
+        <div class="tab-pane fade" id="rejected">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-x-circle me-2"></i>Rejected Applications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if rejected_applications %}
+                    <div class="table-responsive">
+                        <table class="table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Application ID</th>
+                                    <th>Applicant</th>
+                                    <th>Policy</th>
+                                    <th>Type</th>
+                                    <th>Applied Date</th>
+                                    <th>Rejected Date</th>
+                                    <th>Premium</th>
+                                    <th>Coverage</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in rejected_applications %}
+                                <tr>
+                                    <td><strong>#APP-{{ app.id|stringformat:"04d" }}</strong></td>
+                                    <td>{{ app.client.first_name|default:app.client.username }} {{ app.profile.surname|default:"" }}</td>
+                                    <td>{{ app.policy.name }}</td>
+                                    <td>{{ app.policy.get_type_display }}</td>
+                                    <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                                    <td>{{ app.rejected_date|date:"M d, Y"|default:"-" }}</td>
+                                    <td>${{ app.policy.premium_amount|floatformat:2 }}</td>
+                                    <td>${{ app.policy.coverage_amount|floatformat:2 }}</td>
+                                    <td>
+                                        <a href="{% url 'policies:application_detail' app.pk %}" class="action-btn view">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-x-circle fs-1 text-muted mb-3"></i>
+                        <h5 class="text-muted">No rejected applications</h5>
+                        <p class="text-muted">No applications have been rejected yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
