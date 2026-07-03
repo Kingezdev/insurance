@@ -27,15 +27,14 @@ def register_view(request):
             
             user.save()
             
-            # Create user profile
+            # Update user profile (created by signal)
             from .models import UserProfile
-            UserProfile.objects.create(
-                user=user,
-                surname=form.cleaned_data['surname'],
-                firstname=form.cleaned_data['firstname'],
-                phone=form.cleaned_data['phone'],
-                date_of_birth=form.cleaned_data['date_of_birth']
-            )
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            profile.surname = form.cleaned_data['surname']
+            profile.firstname = form.cleaned_data['firstname']
+            profile.phone = form.cleaned_data['phone']
+            profile.date_of_birth = form.cleaned_data['date_of_birth']
+            profile.save()
             
             messages.success(request, 'Registration successful! You can now log in.')
             return redirect('accounts:login')
